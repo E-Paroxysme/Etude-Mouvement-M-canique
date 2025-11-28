@@ -996,6 +996,35 @@
             ctx.arc(radius - 10, 0, 5, 0, 2 * Math.PI);
             ctx.fill();
 
+            // Vecteur vitesse tangentielle (perpendiculaire au rayon)
+            if (omega > 0) {
+                const vLength = omega * 15; // Longueur proportionnelle à omega
+                const pointX = radius - 10;
+                const pointY = 0;
+
+                // Dessiner le vecteur perpendiculaire au rayon (vers le haut en coord locales)
+                ctx.strokeStyle = '#FF5722';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY);
+                ctx.lineTo(pointX, pointY - vLength);
+                ctx.stroke();
+
+                // Flèche du vecteur
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY - vLength);
+                ctx.lineTo(pointX - 4, pointY - vLength + 6);
+                ctx.lineTo(pointX + 4, pointY - vLength + 6);
+                ctx.closePath();
+                ctx.fillStyle = '#FF5722';
+                ctx.fill();
+
+                // Label 'v'
+                ctx.fillStyle = '#FF5722';
+                ctx.font = '12px Arial';
+                ctx.fillText('v', pointX + 8, pointY - vLength / 2);
+            }
+
             ctx.restore();
 
             // Afficher l'angle et la vitesse angulaire
@@ -1085,6 +1114,72 @@
                 ctx.lineTo(radius - 15, 0);
                 ctx.stroke();
                 ctx.rotate(Math.PI / 4);
+            }
+
+            // Revenir à l'angle initial pour dessiner le point de repère
+            ctx.rotate(-2 * Math.PI);
+
+            // Point de repère sur le bord
+            const pointX = radius - 15;
+            const pointY = 0;
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.arc(pointX, pointY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Vecteur vitesse tangentielle (perpendiculaire au rayon)
+            if (omega > 0) {
+                const vLength = omega * 12; // Longueur proportionnelle à omega
+
+                // Dessiner le vecteur vitesse
+                ctx.strokeStyle = '#FF5722';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY);
+                ctx.lineTo(pointX, pointY - vLength);
+                ctx.stroke();
+
+                // Flèche du vecteur vitesse
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY - vLength);
+                ctx.lineTo(pointX - 4, pointY - vLength + 6);
+                ctx.lineTo(pointX + 4, pointY - vLength + 6);
+                ctx.closePath();
+                ctx.fillStyle = '#FF5722';
+                ctx.fill();
+
+                // Label 'v'
+                ctx.fillStyle = '#FF5722';
+                ctx.font = '12px Arial';
+                ctx.fillText('v', pointX + 8, pointY - vLength / 2);
+            }
+
+            // Vecteur accélération tangentielle (même direction que vitesse)
+            if (alpha > 0) {
+                const aLength = alpha * 20; // Longueur proportionnelle à alpha
+                const offset = omega > 0 ? omega * 12 + 10 : 0; // Décalage si vitesse présente
+
+                // Dessiner le vecteur accélération
+                ctx.strokeStyle = '#FF9800';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY - offset);
+                ctx.lineTo(pointX, pointY - offset - aLength);
+                ctx.stroke();
+
+                // Flèche du vecteur accélération
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY - offset - aLength);
+                ctx.lineTo(pointX - 4, pointY - offset - aLength + 6);
+                ctx.lineTo(pointX + 4, pointY - offset - aLength + 6);
+                ctx.closePath();
+                ctx.fillStyle = '#FF9800';
+                ctx.fill();
+
+                // Label 'a'
+                ctx.fillStyle = '#FF9800';
+                ctx.font = '12px Arial';
+                ctx.fillText('a', pointX + 8, pointY - offset - aLength / 2);
             }
 
             ctx.restore();
