@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation de Mouvements Mécaniques</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Onglets */
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f5f5f5;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #555;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        /* Contenu des simulations */
+        .simulation {
+            display: none;
+            padding: 20px;
+        }
+
+        .simulation.active {
+            display: block;
+        }
+
+        .sim-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .animation-panel {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .graphs-panel {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        canvas {
+            display: block;
+            background: white;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .graphs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .graph-container {
+            background: white;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .graph-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        /* Contrôles */
+        .controls {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 80px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+        }
+
+        .btn-pause {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-pause:hover {
+            background: #e68900;
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #da190b;
+        }
+
+        /* Informations */
+        .info-panel {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .info-value {
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .equation {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .equation-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+
+        @media (max-width: 1024px) {
+            .sim-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Simulation de Mouvements Mécaniques</h1>
+            <p class="subtitle">Étude interactive des mouvements rectilignes et de rotation - Sciences de l'Ingénieur</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('mru')">MRU - Chariot</button>
+            <button class="tab" onclick="switchTab('mrua')">MRUA - Voiture</button>
+            <button class="tab" onclick="switchTab('rotation-uniforme')">Rotation Uniforme</button>
+            <button class="tab" onclick="switchTab('rotation-acceleree')">Rotation Accélérée</button>
+        </div>
+
+        <!-- SIMULATION 1: MRU -->
+        <div id="mru" class="simulation active">
+            <div class="sim-content">
+                <div class="animation-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Animation - Chariot sur Rail</h3>
+                    <canvas id="canvas-mru" width="500" height="200"></canvas>
+                </div>
+                <div class="graphs-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Graphiques en temps réel</h3>
+                    <div class="graphs-grid">
+                        <div class="graph-container">
+                            <div class="graph-title">Position x(t)</div>
+                            <canvas id="graph-x-mru" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Vitesse v(t)</div>
+                            <canvas id="graph-v-mru" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Accélération a(t)</div>
+                            <canvas id="graph-a-mru" width="180" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Vitesse initiale v₀ (m/s)</label>
+                    <div class="slider-container">
+                        <input type="range" id="v0-mru" min="0" max="20" value="5" step="0.5">
+                        <span class="value-display" id="v0-mru-value">5 m/s</span>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-start" onclick="startSimulation('mru')">▶ Démarrer</button>
+                    <button class="btn-pause" onclick="pauseSimulation('mru')">⏸ Pause</button>
+                    <button class="btn-reset" onclick="resetSimulation('mru')">↺ Réinitialiser</button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Temps (t):</span>
+                    <span class="info-value" id="time-mru">0.00 s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Position (x):</span>
+                    <span class="info-value" id="position-mru">0.00 m</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vitesse (v):</span>
+                    <span class="info-value" id="velocity-mru">0.00 m/s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Accélération (a):</span>
+                    <span class="info-value" id="acceleration-mru">0.00 m/s²</span>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Équations du Mouvement Rectiligne Uniforme:</div>
+                    <div id="equation-mru">x(t) = x₀ + v₀ × t</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIMULATION 2: MRUA -->
+        <div id="mrua" class="simulation">
+            <div class="sim-content">
+                <div class="animation-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Animation - Voiture</h3>
+                    <canvas id="canvas-mrua" width="500" height="200"></canvas>
+                </div>
+                <div class="graphs-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Graphiques en temps réel</h3>
+                    <div class="graphs-grid">
+                        <div class="graph-container">
+                            <div class="graph-title">Position x(t)</div>
+                            <canvas id="graph-x-mrua" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Vitesse v(t)</div>
+                            <canvas id="graph-v-mrua" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Accélération a(t)</div>
+                            <canvas id="graph-a-mrua" width="180" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Vitesse initiale v₀ (m/s)</label>
+                    <div class="slider-container">
+                        <input type="range" id="v0-mrua" min="0" max="20" value="2" step="0.5">
+                        <span class="value-display" id="v0-mrua-value">2 m/s</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Accélération a (m/s²)</label>
+                    <div class="slider-container">
+                        <input type="range" id="a-mrua" min="0" max="10" value="2" step="0.5">
+                        <span class="value-display" id="a-mrua-value">2 m/s²</span>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-start" onclick="startSimulation('mrua')">▶ Démarrer</button>
+                    <button class="btn-pause" onclick="pauseSimulation('mrua')">⏸ Pause</button>
+                    <button class="btn-reset" onclick="resetSimulation('mrua')">↺ Réinitialiser</button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Temps (t):</span>
+                    <span class="info-value" id="time-mrua">0.00 s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Position (x):</span>
+                    <span class="info-value" id="position-mrua">0.00 m</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vitesse (v):</span>
+                    <span class="info-value" id="velocity-mrua">0.00 m/s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Accélération (a):</span>
+                    <span class="info-value" id="acceleration-mrua">0.00 m/s²</span>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Équations du Mouvement Rectiligne Uniformément Accéléré:</div>
+                    <div id="equation-mrua">x(t) = x₀ + v₀ × t + ½ × a × t²<br>v(t) = v₀ + a × t</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIMULATION 3: Rotation Uniforme -->
+        <div id="rotation-uniforme" class="simulation">
+            <div class="sim-content">
+                <div class="animation-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Animation - Disque Vinyle</h3>
+                    <canvas id="canvas-rot-uni" width="500" height="300"></canvas>
+                </div>
+                <div class="graphs-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Graphiques en temps réel</h3>
+                    <div class="graphs-grid">
+                        <div class="graph-container">
+                            <div class="graph-title">Angle θ(t)</div>
+                            <canvas id="graph-theta-rot-uni" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Vitesse ang. ω(t)</div>
+                            <canvas id="graph-omega-rot-uni" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Accel. ang. α(t)</div>
+                            <canvas id="graph-alpha-rot-uni" width="180" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Vitesse angulaire ω₀ (rad/s)</label>
+                    <div class="slider-container">
+                        <input type="range" id="omega0-rot-uni" min="0" max="10" value="3" step="0.5">
+                        <span class="value-display" id="omega0-rot-uni-value">3 rad/s</span>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-start" onclick="startSimulation('rotation-uniforme')">▶ Démarrer</button>
+                    <button class="btn-pause" onclick="pauseSimulation('rotation-uniforme')">⏸ Pause</button>
+                    <button class="btn-reset" onclick="resetSimulation('rotation-uniforme')">↺ Réinitialiser</button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Temps (t):</span>
+                    <span class="info-value" id="time-rot-uni">0.00 s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Angle (θ):</span>
+                    <span class="info-value" id="angle-rot-uni">0.00 rad</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vitesse angulaire (ω):</span>
+                    <span class="info-value" id="omega-rot-uni">0.00 rad/s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Accélération angulaire (α):</span>
+                    <span class="info-value" id="alpha-rot-uni">0.00 rad/s²</span>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Équations du Mouvement de Rotation Uniforme:</div>
+                    <div id="equation-rot-uni">θ(t) = θ₀ + ω₀ × t</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIMULATION 4: Rotation Accélérée -->
+        <div id="rotation-acceleree" class="simulation">
+            <div class="sim-content">
+                <div class="animation-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Animation - Roue en Rotation</h3>
+                    <canvas id="canvas-rot-acc" width="500" height="300"></canvas>
+                </div>
+                <div class="graphs-panel">
+                    <h3 style="margin-bottom: 10px; color: #667eea;">Graphiques en temps réel</h3>
+                    <div class="graphs-grid">
+                        <div class="graph-container">
+                            <div class="graph-title">Angle θ(t)</div>
+                            <canvas id="graph-theta-rot-acc" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Vitesse ang. ω(t)</div>
+                            <canvas id="graph-omega-rot-acc" width="180" height="120"></canvas>
+                        </div>
+                        <div class="graph-container">
+                            <div class="graph-title">Accel. ang. α(t)</div>
+                            <canvas id="graph-alpha-rot-acc" width="180" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Vitesse angulaire initiale ω₀ (rad/s)</label>
+                    <div class="slider-container">
+                        <input type="range" id="omega0-rot-acc" min="0" max="10" value="1" step="0.5">
+                        <span class="value-display" id="omega0-rot-acc-value">1 rad/s</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Accélération angulaire α (rad/s²)</label>
+                    <div class="slider-container">
+                        <input type="range" id="alpha-rot-acc" min="0" max="5" value="1" step="0.25">
+                        <span class="value-display" id="alpha-rot-acc-value">1 rad/s²</span>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-start" onclick="startSimulation('rotation-acceleree')">▶ Démarrer</button>
+                    <button class="btn-pause" onclick="pauseSimulation('rotation-acceleree')">⏸ Pause</button>
+                    <button class="btn-reset" onclick="resetSimulation('rotation-acceleree')">↺ Réinitialiser</button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Temps (t):</span>
+                    <span class="info-value" id="time-rot-acc">0.00 s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Angle (θ):</span>
+                    <span class="info-value" id="angle-rot-acc">0.00 rad</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vitesse angulaire (ω):</span>
+                    <span class="info-value" id="omega-rot-acc">0.00 rad/s</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Accélération angulaire (α):</span>
+                    <span class="info-value" id="alpha-rot-acc">0.00 rad/s²</span>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Équations du Mouvement de Rotation Uniformément Accéléré:</div>
+                    <div id="equation-rot-acc">θ(t) = θ₀ + ω₀ × t + ½ × α × t²<br>ω(t) = ω₀ + α × t</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GESTION DES ONGLETS
+        // ============================================
+        function switchTab(tabName) {
+            // Masquer toutes les simulations
+            document.querySelectorAll('.simulation').forEach(sim => {
+                sim.classList.remove('active');
+            });
+
+            // Retirer la classe active de tous les onglets
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Activer l'onglet et la simulation sélectionnés
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Mettre en pause toutes les simulations
+            pauseAllSimulations();
+        }
+
+        function pauseAllSimulations() {
+            ['mru', 'mrua', 'rotation-uniforme', 'rotation-acceleree'].forEach(type => {
+                pauseSimulation(type);
+            });
+        }
+
+        // ============================================
+        // ÉTAT DES SIMULATIONS
+        // ============================================
+        const simulations = {
+            'mru': { running: false, time: 0, data: [] },
+            'mrua': { running: false, time: 0, data: [] },
+            'rotation-uniforme': { running: false, time: 0, data: [] },
+            'rotation-acceleree': { running: false, time: 0, data: [] }
+        };
+
+        // ============================================
+        // MISE À JOUR DES SLIDERS
+        // ============================================
+        document.getElementById('v0-mru').addEventListener('input', function() {
+            document.getElementById('v0-mru-value').textContent = this.value + ' m/s';
+        });
+
+        document.getElementById('v0-mrua').addEventListener('input', function() {
+            document.getElementById('v0-mrua-value').textContent = this.value + ' m/s';
+        });
+
+        document.getElementById('a-mrua').addEventListener('input', function() {
+            document.getElementById('a-mrua-value').textContent = this.value + ' m/s²';
+        });
+
+        document.getElementById('omega0-rot-uni').addEventListener('input', function() {
+            document.getElementById('omega0-rot-uni-value').textContent = this.value + ' rad/s';
+        });
+
+        document.getElementById('omega0-rot-acc').addEventListener('input', function() {
+            document.getElementById('omega0-rot-acc-value').textContent = this.value + ' rad/s';
+        });
+
+        document.getElementById('alpha-rot-acc').addEventListener('input', function() {
+            document.getElementById('alpha-rot-acc-value').textContent = this.value + ' rad/s²';
+        });
+
+        // ============================================
+        // CONTRÔLE DES SIMULATIONS
+        // ============================================
+        function startSimulation(type) {
+            simulations[type].running = true;
+            if (!simulations[type].animationFrame) {
+                animate(type);
+            }
+        }
+
+        function pauseSimulation(type) {
+            simulations[type].running = false;
+        }
+
+        function resetSimulation(type) {
+            simulations[type].running = false;
+            simulations[type].time = 0;
+            simulations[type].data = [];
+
+            // Réinitialiser les affichages
+            updateDisplay(type, 0, 0, 0, 0);
+
+            // Effacer les canvas
+            clearCanvas(type);
+        }
+
+        function clearCanvas(type) {
+            const canvasMap = {
+                'mru': ['canvas-mru', 'graph-x-mru', 'graph-v-mru', 'graph-a-mru'],
+                'mrua': ['canvas-mrua', 'graph-x-mrua', 'graph-v-mrua', 'graph-a-mrua'],
+                'rotation-uniforme': ['canvas-rot-uni', 'graph-theta-rot-uni', 'graph-omega-rot-uni', 'graph-alpha-rot-uni'],
+                'rotation-acceleree': ['canvas-rot-acc', 'graph-theta-rot-acc', 'graph-omega-rot-acc', 'graph-alpha-rot-acc']
+            };
+
+            canvasMap[type].forEach(id => {
+                const canvas = document.getElementById(id);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+
+        // ============================================
+        // ANIMATION PRINCIPALE
+        // ============================================
+        function animate(type) {
+            if (!simulations[type].running) {
+                simulations[type].animationFrame = null;
+                return;
+            }
+
+            const dt = 0.05; // Pas de temps en secondes
+            simulations[type].time += dt;
+
+            // Calcul selon le type de mouvement
+            switch(type) {
+                case 'mru':
+                    animateMRU(dt);
+                    break;
+                case 'mrua':
+                    animateMRUA(dt);
+                    break;
+                case 'rotation-uniforme':
+                    animateRotationUniforme(dt);
+                    break;
+                case 'rotation-acceleree':
+                    animateRotationAcceleree(dt);
+                    break;
+            }
+
+            simulations[type].animationFrame = requestAnimationFrame(() => animate(type));
+        }
+
+        // ============================================
+        // MRU - MOUVEMENT RECTILIGNE UNIFORME
+        // ============================================
+        function animateMRU(dt) {
+            const t = simulations['mru'].time;
+            const v0 = parseFloat(document.getElementById('v0-mru').value);
+
+            // Équations du MRU
+            const x = v0 * t;
+            const v = v0;
+            const a = 0;
+
+            // Enregistrer les données
+            simulations['mru'].data.push({ t, x, v, a });
+            if (simulations['mru'].data.length > 200) {
+                simulations['mru'].data.shift();
+            }
+
+            // Mise à jour de l'affichage
+            updateDisplay('mru', t, x, v, a);
+
+            // Animation du chariot
+            drawMRU(x, v0);
+
+            // Tracer les graphiques
+            drawGraphs('mru', simulations['mru'].data);
+
+            // Arrêter si l'objet sort de l'écran
+            if (x > 50) {
+                pauseSimulation('mru');
+            }
+        }
+
+        function drawMRU(position, v0) {
+            const canvas = document.getElementById('canvas-mru');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner le rail
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(20, 150);
+            ctx.lineTo(480, 150);
+            ctx.stroke();
+
+            // Graduations (tous les 5m)
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#666';
+            for (let i = 0; i <= 50; i += 5) {
+                const x = 20 + (i / 50) * 460;
+                ctx.beginPath();
+                ctx.moveTo(x, 145);
+                ctx.lineTo(x, 155);
+                ctx.stroke();
+                ctx.fillText(i + 'm', x - 10, 170);
+            }
+
+            // Position du chariot (échelle: 1m = 9.2 pixels)
+            const xPixel = 20 + (position / 50) * 460;
+
+            // Dessiner le chariot
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(xPixel - 15, 120, 30, 25);
+
+            // Roues
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(xPixel - 8, 145, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(xPixel + 8, 145, 6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Vecteur vitesse
+            if (v0 > 0) {
+                ctx.strokeStyle = '#FF5722';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(xPixel, 110);
+                ctx.lineTo(xPixel + v0 * 5, 110);
+                ctx.stroke();
+
+                // Flèche
+                ctx.beginPath();
+                ctx.moveTo(xPixel + v0 * 5, 110);
+                ctx.lineTo(xPixel + v0 * 5 - 5, 107);
+                ctx.lineTo(xPixel + v0 * 5 - 5, 113);
+                ctx.closePath();
+                ctx.fillStyle = '#FF5722';
+                ctx.fill();
+
+                ctx.fillStyle = '#FF5722';
+                ctx.font = '12px Arial';
+                ctx.fillText('v', xPixel + v0 * 5 + 5, 114);
+            }
+        }
+
+        // ============================================
+        // MRUA - MOUVEMENT RECTILIGNE UNIFORMÉMENT ACCÉLÉRÉ
+        // ============================================
+        function animateMRUA(dt) {
+            const t = simulations['mrua'].time;
+            const v0 = parseFloat(document.getElementById('v0-mrua').value);
+            const a = parseFloat(document.getElementById('a-mrua').value);
+
+            // Équations du MRUA
+            const x = v0 * t + 0.5 * a * t * t;
+            const v = v0 + a * t;
+
+            // Enregistrer les données
+            simulations['mrua'].data.push({ t, x, v, a });
+            if (simulations['mrua'].data.length > 200) {
+                simulations['mrua'].data.shift();
+            }
+
+            // Mise à jour de l'affichage
+            updateDisplay('mrua', t, x, v, a);
+
+            // Animation de la voiture
+            drawMRUA(x, v, a);
+
+            // Tracer les graphiques
+            drawGraphs('mrua', simulations['mrua'].data);
+
+            // Arrêter si l'objet sort de l'écran
+            if (x > 50) {
+                pauseSimulation('mrua');
+            }
+        }
+
+        function drawMRUA(position, velocity, acceleration) {
+            const canvas = document.getElementById('canvas-mrua');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner la route
+            ctx.fillStyle = '#555';
+            ctx.fillRect(0, 140, 500, 40);
+
+            // Ligne blanche
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(0, 160);
+            ctx.lineTo(500, 160);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Graduations
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#666';
+            for (let i = 0; i <= 50; i += 5) {
+                const x = 20 + (i / 50) * 460;
+                ctx.fillText(i + 'm', x - 10, 195);
+            }
+
+            // Position de la voiture
+            const xPixel = 20 + (position / 50) * 460;
+
+            // Dessiner la voiture
+            ctx.fillStyle = '#2196F3';
+            ctx.fillRect(xPixel - 20, 115, 40, 20);
+
+            // Toit
+            ctx.fillStyle = '#1976D2';
+            ctx.fillRect(xPixel - 12, 105, 24, 10);
+
+            // Roues
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(xPixel - 10, 135, 7, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(xPixel + 10, 135, 7, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Vecteurs
+            if (velocity > 0) {
+                // Vecteur vitesse
+                ctx.strokeStyle = '#FF5722';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(xPixel, 95);
+                ctx.lineTo(xPixel + velocity * 3, 95);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xPixel + velocity * 3, 95);
+                ctx.lineTo(xPixel + velocity * 3 - 5, 92);
+                ctx.lineTo(xPixel + velocity * 3 - 5, 98);
+                ctx.closePath();
+                ctx.fillStyle = '#FF5722';
+                ctx.fill();
+
+                ctx.font = '12px Arial';
+                ctx.fillText('v', xPixel + velocity * 3 + 5, 99);
+            }
+
+            if (acceleration > 0) {
+                // Vecteur accélération
+                ctx.strokeStyle = '#FF9800';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(xPixel, 80);
+                ctx.lineTo(xPixel + acceleration * 8, 80);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xPixel + acceleration * 8, 80);
+                ctx.lineTo(xPixel + acceleration * 8 - 5, 77);
+                ctx.lineTo(xPixel + acceleration * 8 - 5, 83);
+                ctx.closePath();
+                ctx.fillStyle = '#FF9800';
+                ctx.fill();
+
+                ctx.font = '12px Arial';
+                ctx.fillText('a', xPixel + acceleration * 8 + 5, 84);
+            }
+        }
+
+        // ============================================
+        // ROTATION UNIFORME
+        // ============================================
+        function animateRotationUniforme(dt) {
+            const t = simulations['rotation-uniforme'].time;
+            const omega0 = parseFloat(document.getElementById('omega0-rot-uni').value);
+
+            // Équations de la rotation uniforme
+            const theta = omega0 * t;
+            const omega = omega0;
+            const alpha = 0;
+
+            // Enregistrer les données
+            simulations['rotation-uniforme'].data.push({ t, theta, omega, alpha });
+            if (simulations['rotation-uniforme'].data.length > 200) {
+                simulations['rotation-uniforme'].data.shift();
+            }
+
+            // Mise à jour de l'affichage
+            updateDisplayRotation('rotation-uniforme', t, theta, omega, alpha);
+
+            // Animation du disque
+            drawRotationUniforme(theta, omega);
+
+            // Tracer les graphiques
+            drawGraphsRotation('rotation-uniforme', simulations['rotation-uniforme'].data);
+        }
+
+        function drawRotationUniforme(angle, omega) {
+            const canvas = document.getElementById('canvas-rot-uni');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            // Dessiner le disque
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Motif du vinyle
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            for (let r = 20; r < radius; r += 10) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+
+            // Centre
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Trait de repère
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle);
+
+            ctx.strokeStyle = '#FF5722';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(radius - 10, 0);
+            ctx.stroke();
+
+            // Point sur le bord
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.arc(radius - 10, 0, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Afficher l'angle et la vitesse angulaire
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.fillText('θ = ' + (angle % (2 * Math.PI)).toFixed(2) + ' rad', 10, 20);
+            ctx.fillText('ω = ' + omega.toFixed(2) + ' rad/s', 10, 40);
+
+            // Flèche de rotation
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius + 20, -Math.PI / 4, Math.PI / 4);
+            ctx.stroke();
+
+            // Pointe de flèche
+            const arrowAngle = Math.PI / 4;
+            const arrowX = centerX + (radius + 20) * Math.cos(arrowAngle);
+            const arrowY = centerY + (radius + 20) * Math.sin(arrowAngle);
+
+            ctx.beginPath();
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX - 10, arrowY - 5);
+            ctx.lineTo(arrowX - 10, arrowY + 5);
+            ctx.closePath();
+            ctx.fillStyle = '#4CAF50';
+            ctx.fill();
+        }
+
+        // ============================================
+        // ROTATION ACCÉLÉRÉE
+        // ============================================
+        function animateRotationAcceleree(dt) {
+            const t = simulations['rotation-acceleree'].time;
+            const omega0 = parseFloat(document.getElementById('omega0-rot-acc').value);
+            const alpha = parseFloat(document.getElementById('alpha-rot-acc').value);
+
+            // Équations de la rotation uniformément accélérée
+            const theta = omega0 * t + 0.5 * alpha * t * t;
+            const omega = omega0 + alpha * t;
+
+            // Enregistrer les données
+            simulations['rotation-acceleree'].data.push({ t, theta, omega, alpha });
+            if (simulations['rotation-acceleree'].data.length > 200) {
+                simulations['rotation-acceleree'].data.shift();
+            }
+
+            // Mise à jour de l'affichage
+            updateDisplayRotation('rotation-acceleree', t, theta, omega, alpha);
+
+            // Animation de la roue
+            drawRotationAcceleree(theta, omega, alpha);
+
+            // Tracer les graphiques
+            drawGraphsRotation('rotation-acceleree', simulations['rotation-acceleree'].data);
+        }
+
+        function drawRotationAcceleree(angle, omega, alpha) {
+            const canvas = document.getElementById('canvas-rot-acc');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            // Dessiner la roue
+            ctx.fillStyle = '#666';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Jante
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 10, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle);
+
+            // Rayons
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(radius - 15, 0);
+                ctx.stroke();
+                ctx.rotate(Math.PI / 4);
+            }
+
+            ctx.restore();
+
+            // Centre
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Afficher les valeurs
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.fillText('θ = ' + (angle % (2 * Math.PI)).toFixed(2) + ' rad', 10, 20);
+            ctx.fillText('ω = ' + omega.toFixed(2) + ' rad/s', 10, 40);
+            ctx.fillText('α = ' + alpha.toFixed(2) + ' rad/s²', 10, 60);
+
+            // Flèche de rotation avec intensité proportionnelle à omega
+            if (omega > 0) {
+                ctx.strokeStyle = '#4CAF50';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius + 20, -Math.PI / 4, Math.PI / 4);
+                ctx.stroke();
+
+                const arrowAngle = Math.PI / 4;
+                const arrowX = centerX + (radius + 20) * Math.cos(arrowAngle);
+                const arrowY = centerY + (radius + 20) * Math.sin(arrowAngle);
+
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX - 10, arrowY - 5);
+                ctx.lineTo(arrowX - 10, arrowY + 5);
+                ctx.closePath();
+                ctx.fillStyle = '#4CAF50';
+                ctx.fill();
+            }
+        }
+
+        // ============================================
+        // GRAPHIQUES
+        // ============================================
+        function drawGraphs(type, data) {
+            if (data.length < 2) return;
+
+            const graphIds = {
+                'mru': ['graph-x-mru', 'graph-v-mru', 'graph-a-mru'],
+                'mrua': ['graph-x-mrua', 'graph-v-mrua', 'graph-a-mrua']
+            };
+
+            const properties = ['x', 'v', 'a'];
+            const colors = ['#2196F3', '#FF5722', '#FF9800'];
+
+            graphIds[type].forEach((id, index) => {
+                const canvas = document.getElementById(id);
+                const ctx = canvas.getContext('2d');
+                const prop = properties[index];
+
+                drawGraph(ctx, canvas, data, prop, colors[index]);
+            });
+        }
+
+        function drawGraphsRotation(type, data) {
+            if (data.length < 2) return;
+
+            const graphIds = {
+                'rotation-uniforme': ['graph-theta-rot-uni', 'graph-omega-rot-uni', 'graph-alpha-rot-uni'],
+                'rotation-acceleree': ['graph-theta-rot-acc', 'graph-omega-rot-acc', 'graph-alpha-rot-acc']
+            };
+
+            const properties = ['theta', 'omega', 'alpha'];
+            const colors = ['#2196F3', '#FF5722', '#FF9800'];
+
+            graphIds[type].forEach((id, index) => {
+                const canvas = document.getElementById(id);
+                const ctx = canvas.getContext('2d');
+                const prop = properties[index];
+
+                drawGraph(ctx, canvas, data, prop, colors[index]);
+            });
+        }
+
+        function drawGraph(ctx, canvas, data, property, color) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 25;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Trouver min/max
+            const values = data.map(d => d[property]);
+            const times = data.map(d => d.t);
+            const minVal = Math.min(...values, 0);
+            const maxVal = Math.max(...values, 1);
+            const maxTime = Math.max(...times, 1);
+
+            // Tracer la courbe
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            data.forEach((point, i) => {
+                const x = padding + ((point.t / maxTime) * (width - 2 * padding));
+                const y = height - padding - ((point[property] - minVal) / (maxVal - minVal) * (height - 2 * padding));
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#666';
+            ctx.font = '9px Arial';
+            ctx.fillText(maxVal.toFixed(1), 2, padding);
+            ctx.fillText(minVal.toFixed(1), 2, height - padding);
+            ctx.fillText('0', padding - 5, height - padding + 12);
+            ctx.fillText(maxTime.toFixed(1) + 's', width - padding - 10, height - padding + 12);
+        }
+
+        // ============================================
+        // MISE À JOUR DES AFFICHAGES
+        // ============================================
+        function updateDisplay(type, time, position, velocity, acceleration) {
+            document.getElementById(`time-${type}`).textContent = time.toFixed(2) + ' s';
+            document.getElementById(`position-${type}`).textContent = position.toFixed(2) + ' m';
+            document.getElementById(`velocity-${type}`).textContent = velocity.toFixed(2) + ' m/s';
+            document.getElementById(`acceleration-${type}`).textContent = acceleration.toFixed(2) + ' m/s²';
+
+            // Mise à jour de l'équation avec les valeurs actuelles
+            if (type === 'mru') {
+                const v0 = parseFloat(document.getElementById('v0-mru').value);
+                document.getElementById('equation-mru').innerHTML =
+                    `x(t) = 0 + ${v0} × t<br>` +
+                    `x(${time.toFixed(2)}) = ${position.toFixed(2)} m`;
+            } else if (type === 'mrua') {
+                const v0 = parseFloat(document.getElementById('v0-mrua').value);
+                const a = parseFloat(document.getElementById('a-mrua').value);
+                document.getElementById('equation-mrua').innerHTML =
+                    `x(t) = 0 + ${v0} × t + ½ × ${a} × t²<br>` +
+                    `v(t) = ${v0} + ${a} × t<br>` +
+                    `x(${time.toFixed(2)}) = ${position.toFixed(2)} m | v(${time.toFixed(2)}) = ${velocity.toFixed(2)} m/s`;
+            }
+        }
+
+        function updateDisplayRotation(type, time, angle, omega, alpha) {
+            const suffix = type === 'rotation-uniforme' ? 'rot-uni' : 'rot-acc';
+
+            document.getElementById(`time-${suffix}`).textContent = time.toFixed(2) + ' s';
+            document.getElementById(`angle-${suffix}`).textContent = angle.toFixed(2) + ' rad';
+            document.getElementById(`omega-${suffix}`).textContent = omega.toFixed(2) + ' rad/s';
+            document.getElementById(`alpha-${suffix}`).textContent = alpha.toFixed(2) + ' rad/s²';
+
+            // Mise à jour de l'équation
+            if (type === 'rotation-uniforme') {
+                const omega0 = parseFloat(document.getElementById('omega0-rot-uni').value);
+                document.getElementById('equation-rot-uni').innerHTML =
+                    `θ(t) = 0 + ${omega0} × t<br>` +
+                    `θ(${time.toFixed(2)}) = ${angle.toFixed(2)} rad`;
+            } else if (type === 'rotation-acceleree') {
+                const omega0 = parseFloat(document.getElementById('omega0-rot-acc').value);
+                const alpha = parseFloat(document.getElementById('alpha-rot-acc').value);
+                document.getElementById('equation-rot-acc').innerHTML =
+                    `θ(t) = 0 + ${omega0} × t + ½ × ${alpha} × t²<br>` +
+                    `ω(t) = ${omega0} + ${alpha} × t<br>` +
+                    `θ(${time.toFixed(2)}) = ${angle.toFixed(2)} rad | ω(${time.toFixed(2)}) = ${omega.toFixed(2)} rad/s`;
+            }
+        }
+
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        window.addEventListener('load', function() {
+            // Dessiner les états initiaux
+            drawMRU(0, 5);
+            drawMRUA(0, 2, 2);
+            drawRotationUniforme(0, 3);
+            drawRotationAcceleree(0, 1, 1);
+        });
+    </script>
+</body>
+</html>
