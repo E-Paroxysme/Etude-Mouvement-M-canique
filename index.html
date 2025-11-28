@@ -325,6 +325,7 @@
                             <canvas id="graph-a-mru" width="180" height="120"></canvas>
                         </div>
                     </div>
+                    <button onclick="exportData('mru')" style="margin-top: 12px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%;">📥 Exporter les données et graphiques</button>
                 </div>
             </div>
 
@@ -344,6 +345,7 @@
             </div>
 
             <div class="info-panel">
+                <h4 style="margin-bottom: 12px; color: #667eea; font-size: 15px;">📊 Informations en temps réel - Chariot</h4>
                 <div class="info-row">
                     <span class="info-label">Temps (t):</span>
                     <span class="info-value" id="time-mru">0.00 s</span>
@@ -386,6 +388,7 @@
                             <canvas id="graph-a-mrua" width="180" height="120"></canvas>
                         </div>
                     </div>
+                    <button onclick="exportData('mrua')" style="margin-top: 12px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%;">📥 Exporter les données et graphiques</button>
                 </div>
             </div>
 
@@ -412,6 +415,7 @@
             </div>
 
             <div class="info-panel">
+                <h4 style="margin-bottom: 12px; color: #667eea; font-size: 15px;">📊 Informations en temps réel - Voiture</h4>
                 <div class="info-row">
                     <span class="info-label">Temps (t):</span>
                     <span class="info-value" id="time-mrua">0.00 s</span>
@@ -454,6 +458,7 @@
                             <canvas id="graph-alpha-rot-uni" width="180" height="120"></canvas>
                         </div>
                     </div>
+                    <button onclick="exportData('rotation-uniforme')" style="margin-top: 12px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%;">📥 Exporter les données et graphiques</button>
                 </div>
             </div>
 
@@ -473,6 +478,7 @@
             </div>
 
             <div class="info-panel">
+                <h4 style="margin-bottom: 12px; color: #667eea; font-size: 15px;">📊 Informations en temps réel - Disque Vinyle</h4>
                 <div class="info-row">
                     <span class="info-label">Temps (t):</span>
                     <span class="info-value" id="time-rot-uni">0.00 s</span>
@@ -515,6 +521,7 @@
                             <canvas id="graph-alpha-rot-acc" width="180" height="120"></canvas>
                         </div>
                     </div>
+                    <button onclick="exportData('rotation-acceleree')" style="margin-top: 12px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%;">📥 Exporter les données et graphiques</button>
                 </div>
             </div>
 
@@ -541,6 +548,7 @@
             </div>
 
             <div class="info-panel">
+                <h4 style="margin-bottom: 12px; color: #667eea; font-size: 15px;">📊 Informations en temps réel - Roue</h4>
                 <div class="info-row">
                     <span class="info-label">Temps (t):</span>
                     <span class="info-value" id="time-rot-acc">0.00 s</span>
@@ -1226,6 +1234,130 @@
             document.getElementById(`angle-${suffix}`).textContent = angle.toFixed(2) + ' rad';
             document.getElementById(`omega-${suffix}`).textContent = omega.toFixed(2) + ' rad/s';
             document.getElementById(`alpha-${suffix}`).textContent = alpha.toFixed(2) + ' rad/s²';
+        }
+
+        // ============================================
+        // EXPORT DES DONNÉES
+        // ============================================
+        function exportData(type) {
+            const data = simulations[type].data;
+
+            if (data.length === 0) {
+                alert('⚠️ Aucune donnée à exporter. Lancez d\'abord la simulation !');
+                return;
+            }
+
+            // Noms des simulations
+            const simNames = {
+                'mru': 'MRU_Chariot',
+                'mrua': 'MRUA_Voiture',
+                'rotation-uniforme': 'Rotation_Uniforme_Disque',
+                'rotation-acceleree': 'Rotation_Acceleree_Roue'
+            };
+
+            const simName = simNames[type];
+
+            // 1. EXPORT CSV
+            exportCSV(type, data, simName);
+
+            // 2. EXPORT GRAPHIQUES (PNG)
+            setTimeout(() => {
+                exportGraphs(type, simName);
+            }, 100);
+        }
+
+        function exportCSV(type, data, simName) {
+            let csvContent = '';
+
+            // En-tête selon le type
+            if (type === 'mru' || type === 'mrua') {
+                csvContent = 'Temps (s),Position (m),Vitesse (m/s),Accélération (m/s²)\n';
+                data.forEach(point => {
+                    csvContent += `${point.t.toFixed(3)},${point.x.toFixed(3)},${point.v.toFixed(3)},${point.a.toFixed(3)}\n`;
+                });
+            } else {
+                csvContent = 'Temps (s),Angle (rad),Vitesse angulaire (rad/s),Accélération angulaire (rad/s²)\n';
+                data.forEach(point => {
+                    csvContent += `${point.t.toFixed(3)},${point.theta.toFixed(3)},${point.omega.toFixed(3)},${point.alpha.toFixed(3)}\n`;
+                });
+            }
+
+            // Télécharger le CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${simName}_donnees.csv`;
+            link.click();
+        }
+
+        function exportGraphs(type, simName) {
+            // Créer un canvas temporaire pour combiner les 3 graphiques
+            const tempCanvas = document.createElement('canvas');
+            const ctx = tempCanvas.getContext('2d');
+
+            // Dimensions du canvas combiné
+            tempCanvas.width = 600;
+            tempCanvas.height = 250;
+
+            // Fond blanc
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Titre
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            const titles = {
+                'mru': 'MRU - Chariot sur Rail',
+                'mrua': 'MRUA - Voiture',
+                'rotation-uniforme': 'Rotation Uniforme - Disque Vinyle',
+                'rotation-acceleree': 'Rotation Accélérée - Roue'
+            };
+            ctx.fillText(titles[type], tempCanvas.width / 2, 25);
+
+            // Récupérer les 3 graphiques
+            const graphIds = {
+                'mru': ['graph-x-mru', 'graph-v-mru', 'graph-a-mru'],
+                'mrua': ['graph-x-mrua', 'graph-v-mrua', 'graph-a-mrua'],
+                'rotation-uniforme': ['graph-theta-rot-uni', 'graph-omega-rot-uni', 'graph-alpha-rot-uni'],
+                'rotation-acceleree': ['graph-theta-rot-acc', 'graph-omega-rot-acc', 'graph-alpha-rot-acc']
+            };
+
+            const graphs = graphIds[type];
+            const graphWidth = 180;
+            const graphHeight = 120;
+            const startY = 50;
+            const spacing = 10;
+
+            // Copier chaque graphique
+            graphs.forEach((id, index) => {
+                const sourceCanvas = document.getElementById(id);
+                const xPos = spacing + index * (graphWidth + spacing);
+                ctx.drawImage(sourceCanvas, xPos, startY, graphWidth, graphHeight);
+            });
+
+            // Labels des graphiques
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            const labels = {
+                'mru': ['Position x(t)', 'Vitesse v(t)', 'Accélération a(t)'],
+                'mrua': ['Position x(t)', 'Vitesse v(t)', 'Accélération a(t)'],
+                'rotation-uniforme': ['Angle θ(t)', 'Vitesse ang. ω(t)', 'Accel. ang. α(t)'],
+                'rotation-acceleree': ['Angle θ(t)', 'Vitesse ang. ω(t)', 'Accel. ang. α(t)']
+            };
+
+            labels[type].forEach((label, index) => {
+                const xPos = spacing + index * (graphWidth + spacing) + graphWidth / 2;
+                ctx.fillText(label, xPos, startY + graphHeight + 20);
+            });
+
+            // Télécharger l'image
+            tempCanvas.toBlob(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${simName}_graphiques.png`;
+                link.click();
+            });
         }
 
         // ============================================
