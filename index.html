@@ -360,10 +360,6 @@
                     <span class="info-label">Accélération (a):</span>
                     <span class="info-value" id="acceleration-mru">0.00 m/s²</span>
                 </div>
-                <div class="equation">
-                    <div class="equation-title">Équations du Mouvement Rectiligne Uniforme:</div>
-                    <div id="equation-mru">x(t) = x₀ + v₀ × t</div>
-                </div>
             </div>
         </div>
 
@@ -432,10 +428,6 @@
                     <span class="info-label">Accélération (a):</span>
                     <span class="info-value" id="acceleration-mrua">0.00 m/s²</span>
                 </div>
-                <div class="equation">
-                    <div class="equation-title">Équations du Mouvement Rectiligne Uniformément Accéléré:</div>
-                    <div id="equation-mrua">x(t) = x₀ + v₀ × t + ½ × a × t²<br>v(t) = v₀ + a × t</div>
-                </div>
             </div>
         </div>
 
@@ -496,10 +488,6 @@
                 <div class="info-row">
                     <span class="info-label">Accélération angulaire (α):</span>
                     <span class="info-value" id="alpha-rot-uni">0.00 rad/s²</span>
-                </div>
-                <div class="equation">
-                    <div class="equation-title">Équations du Mouvement de Rotation Uniforme:</div>
-                    <div id="equation-rot-uni">θ(t) = θ₀ + ω₀ × t</div>
                 </div>
             </div>
         </div>
@@ -568,10 +556,6 @@
                 <div class="info-row">
                     <span class="info-label">Accélération angulaire (α):</span>
                     <span class="info-value" id="alpha-rot-acc">0.00 rad/s²</span>
-                </div>
-                <div class="equation">
-                    <div class="equation-title">Équations du Mouvement de Rotation Uniformément Accéléré:</div>
-                    <div id="equation-rot-acc">θ(t) = θ₀ + ω₀ × t + ½ × α × t²<br>ω(t) = ω₀ + α × t</div>
                 </div>
             </div>
         </div>
@@ -693,7 +677,7 @@
                 return;
             }
 
-            const dt = 0.05; // Pas de temps en secondes
+            const dt = 0.02; // Pas de temps en secondes (ralenti pour meilleure observation)
             simulations[type].time += dt;
 
             // Calcul selon le type de mouvement
@@ -727,11 +711,8 @@
             const v = v0;
             const a = 0;
 
-            // Enregistrer les données
+            // Enregistrer les données (garder tout l'historique pour affichage progressif)
             simulations['mru'].data.push({ t, x, v, a });
-            if (simulations['mru'].data.length > 200) {
-                simulations['mru'].data.shift();
-            }
 
             // Mise à jour de l'affichage
             updateDisplay('mru', t, x, v, a);
@@ -742,8 +723,8 @@
             // Tracer les graphiques
             drawGraphs('mru', simulations['mru'].data);
 
-            // Arrêter si l'objet sort de l'écran
-            if (x > 50) {
+            // Arrêter si l'objet sort de l'écran (distance augmentée pour plus d'observation)
+            if (x > 100) {
                 pauseSimulation('mru');
             }
         }
@@ -761,11 +742,11 @@
             ctx.lineTo(480, 150);
             ctx.stroke();
 
-            // Graduations (tous les 5m)
+            // Graduations (tous les 10m)
             ctx.font = '10px Arial';
             ctx.fillStyle = '#666';
-            for (let i = 0; i <= 50; i += 5) {
-                const x = 20 + (i / 50) * 460;
+            for (let i = 0; i <= 100; i += 10) {
+                const x = 20 + (i / 100) * 460;
                 ctx.beginPath();
                 ctx.moveTo(x, 145);
                 ctx.lineTo(x, 155);
@@ -773,8 +754,8 @@
                 ctx.fillText(i + 'm', x - 10, 170);
             }
 
-            // Position du chariot (échelle: 1m = 9.2 pixels)
-            const xPixel = 20 + (position / 50) * 460;
+            // Position du chariot (échelle adaptée à 100m)
+            const xPixel = 20 + (position / 100) * 460;
 
             // Dessiner le chariot
             ctx.fillStyle = '#4CAF50';
@@ -825,11 +806,8 @@
             const x = v0 * t + 0.5 * a * t * t;
             const v = v0 + a * t;
 
-            // Enregistrer les données
+            // Enregistrer les données (garder tout l'historique pour affichage progressif)
             simulations['mrua'].data.push({ t, x, v, a });
-            if (simulations['mrua'].data.length > 200) {
-                simulations['mrua'].data.shift();
-            }
 
             // Mise à jour de l'affichage
             updateDisplay('mrua', t, x, v, a);
@@ -840,8 +818,8 @@
             // Tracer les graphiques
             drawGraphs('mrua', simulations['mrua'].data);
 
-            // Arrêter si l'objet sort de l'écran
-            if (x > 50) {
+            // Arrêter si l'objet sort de l'écran (distance augmentée pour plus d'observation)
+            if (x > 100) {
                 pauseSimulation('mrua');
             }
         }
@@ -868,13 +846,13 @@
             // Graduations
             ctx.font = '10px Arial';
             ctx.fillStyle = '#666';
-            for (let i = 0; i <= 50; i += 5) {
-                const x = 20 + (i / 50) * 460;
+            for (let i = 0; i <= 100; i += 10) {
+                const x = 20 + (i / 100) * 460;
                 ctx.fillText(i + 'm', x - 10, 195);
             }
 
-            // Position de la voiture
-            const xPixel = 20 + (position / 50) * 460;
+            // Position de la voiture (échelle adaptée à 100m)
+            const xPixel = 20 + (position / 100) * 460;
 
             // Dessiner la voiture
             ctx.fillStyle = '#2196F3';
@@ -949,11 +927,8 @@
             const omega = omega0;
             const alpha = 0;
 
-            // Enregistrer les données
+            // Enregistrer les données (garder tout l'historique pour affichage progressif)
             simulations['rotation-uniforme'].data.push({ t, theta, omega, alpha });
-            if (simulations['rotation-uniforme'].data.length > 200) {
-                simulations['rotation-uniforme'].data.shift();
-            }
 
             // Mise à jour de l'affichage
             updateDisplayRotation('rotation-uniforme', t, theta, omega, alpha);
@@ -1054,11 +1029,8 @@
             const theta = omega0 * t + 0.5 * alpha * t * t;
             const omega = omega0 + alpha * t;
 
-            // Enregistrer les données
+            // Enregistrer les données (garder tout l'historique pour affichage progressif)
             simulations['rotation-acceleree'].data.push({ t, theta, omega, alpha });
-            if (simulations['rotation-acceleree'].data.length > 200) {
-                simulations['rotation-acceleree'].data.shift();
-            }
 
             // Mise à jour de l'affichage
             updateDisplayRotation('rotation-acceleree', t, theta, omega, alpha);
@@ -1245,21 +1217,6 @@
             document.getElementById(`position-${type}`).textContent = position.toFixed(2) + ' m';
             document.getElementById(`velocity-${type}`).textContent = velocity.toFixed(2) + ' m/s';
             document.getElementById(`acceleration-${type}`).textContent = acceleration.toFixed(2) + ' m/s²';
-
-            // Mise à jour de l'équation avec les valeurs actuelles
-            if (type === 'mru') {
-                const v0 = parseFloat(document.getElementById('v0-mru').value);
-                document.getElementById('equation-mru').innerHTML =
-                    `x(t) = 0 + ${v0} × t<br>` +
-                    `x(${time.toFixed(2)}) = ${position.toFixed(2)} m`;
-            } else if (type === 'mrua') {
-                const v0 = parseFloat(document.getElementById('v0-mrua').value);
-                const a = parseFloat(document.getElementById('a-mrua').value);
-                document.getElementById('equation-mrua').innerHTML =
-                    `x(t) = 0 + ${v0} × t + ½ × ${a} × t²<br>` +
-                    `v(t) = ${v0} + ${a} × t<br>` +
-                    `x(${time.toFixed(2)}) = ${position.toFixed(2)} m | v(${time.toFixed(2)}) = ${velocity.toFixed(2)} m/s`;
-            }
         }
 
         function updateDisplayRotation(type, time, angle, omega, alpha) {
@@ -1269,21 +1226,6 @@
             document.getElementById(`angle-${suffix}`).textContent = angle.toFixed(2) + ' rad';
             document.getElementById(`omega-${suffix}`).textContent = omega.toFixed(2) + ' rad/s';
             document.getElementById(`alpha-${suffix}`).textContent = alpha.toFixed(2) + ' rad/s²';
-
-            // Mise à jour de l'équation
-            if (type === 'rotation-uniforme') {
-                const omega0 = parseFloat(document.getElementById('omega0-rot-uni').value);
-                document.getElementById('equation-rot-uni').innerHTML =
-                    `θ(t) = 0 + ${omega0} × t<br>` +
-                    `θ(${time.toFixed(2)}) = ${angle.toFixed(2)} rad`;
-            } else if (type === 'rotation-acceleree') {
-                const omega0 = parseFloat(document.getElementById('omega0-rot-acc').value);
-                const alpha = parseFloat(document.getElementById('alpha-rot-acc').value);
-                document.getElementById('equation-rot-acc').innerHTML =
-                    `θ(t) = 0 + ${omega0} × t + ½ × ${alpha} × t²<br>` +
-                    `ω(t) = ${omega0} + ${alpha} × t<br>` +
-                    `θ(${time.toFixed(2)}) = ${angle.toFixed(2)} rad | ω(${time.toFixed(2)}) = ${omega.toFixed(2)} rad/s`;
-            }
         }
 
         // ============================================
